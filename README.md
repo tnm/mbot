@@ -19,54 +19,31 @@ If you just want to get the board doing something quickly, use this path.
 The default serial port is `/dev/cu.usbserial-0001`. If your board shows up
 somewhere else, pass `--port /path/to/device` to the CLI commands below.
 
-1. Install the CLI from the repo root:
+```bash
+# install the CLI from the repo root
+bash scripts/install.sh
 
-   ```bash
-   bash scripts/install.sh
-   ```
+# if `mbot` is not found in a fresh shell, add uv's tool bin directory
+uv tool update-shell
 
-2. If `mbot` is not found in a fresh shell, add uv's tool bin directory to your
-   shell setup:
+# flash the firmware to the ESP32
+mbot flash
 
-   ```bash
-   uv tool update-shell
-   ```
+# confirm the board is reachable
+mbot board-brightness
 
-3. Flash the firmware to the ESP32:
+# list the bundled pieces
+mbot pieces
 
-   ```bash
-   mbot flash
-   ```
+# play one
+mbot run cavalleria_rusticana
 
-4. Confirm the board is reachable:
+# change brightness live if needed
+mbot board-brightness 10
 
-   ```bash
-   mbot board-brightness
-   ```
-
-5. List the bundled pieces:
-
-   ```bash
-   mbot pieces
-   ```
-
-6. Play one:
-
-   ```bash
-   mbot run cavalleria_rusticana
-   ```
-
-7. Change brightness live if needed:
-
-   ```bash
-   mbot board-brightness 10
-   ```
-
-8. Stop playback:
-
-   ```bash
-   bash scripts/stop_playback.sh
-   ```
+# stop playback
+bash scripts/stop_playback.sh
+```
 
 That is the shortest end-to-end path: install, flash, verify, play, adjust,
 stop.
