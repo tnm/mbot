@@ -7,11 +7,13 @@ from unittest import mock
 
 from mbot.__main__ import (
     _format_piece_listing_rows,
+    _format_track_summary_rows,
     _interactive_loop,
     _resolve_piece_choice,
     build_parser,
     main,
 )
+from mbot.midi import MidiTrackSummary
 
 
 class CliContractTests(unittest.TestCase):
@@ -24,6 +26,8 @@ class CliContractTests(unittest.TestCase):
         self.assertIn("Music-to-light CLI for the ESP32 renderer.", output)
         self.assertIn("common commands:", output)
         self.assertIn("flash", output)
+        self.assertIn("mbot interactive\n", output)
+        self.assertIn("use --port /path/to/device", output)
 
     def test_run_player_choices_only_include_real_playback_modes(self) -> None:
         parser = build_parser()
@@ -48,6 +52,17 @@ class CliContractTests(unittest.TestCase):
         args = parser.parse_args(["interactive", "--port", "/dev/test"])
         self.assertEqual(args.command, "interactive")
         self.assertEqual(args.port, "/dev/test")
+
+    def test_interactive_help_lists_menu_commands(self) -> None:
+        parser = build_parser()
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            with self.assertRaises(SystemExit):
+                parser.parse_args(["interactive", "--help"])
+        output = stdout.getvalue()
+        self.assertIn("Menu commands:", output)
+        self.assertIn("brightness", output)
+        self.assertIn("quit", output)
 
     def test_interactive_play_stops_existing_playback_before_starting(self) -> None:
         process = mock.Mock()
@@ -89,6 +104,40 @@ class CliContractTests(unittest.TestCase):
         self.assertEqual(lines[0].split(), ["slug", "title", "tracks", "midi"])
         self.assertIn("midi/", lines[2])
         self.assertNotIn("/Users/", lines[2])
+
+    def test_track_summary_rows_are_rendered_as_a_table(self) -> None:
+        lines = _format_track_summary_rows(
+            (
+                MidiTrackSummary(
+                    index=4,
+                    name="Lead",
+                    note_count=220,
+                    channels=(1, 2),
+                    programs=(40,),
+                    min_pitch=60,
+                    max_pitch=81,
+                ),
+            )
+        )
+        self.assertEqual(lines[0].split(), ["id", "name", "notes", "channels", "programs", "pitch"])
+        self.assertIn("Lead", lines[2])
+        self.assertIn("Violin", lines[2])
+
+    def test_board_brightness_prints_compact_result(self) -> None:
+        board = mock.Mock()
+        board.query_info.return_value.raw_reply = "OK PINS 26 25 33 32 BRIGHTNESS 75\n"
+        board.query_brightness.return_value = 75
+        board_context = mock.Mock()
+        board_context.__enter__ = mock.Mock(return_value=board)
+        board_context.__exit__ = mock.Mock(return_value=False)
+        stdout = io.StringIO()
+        with (
+            contextlib.redirect_stdout(stdout),
+            mock.patch("mbot.__main__.SerialLightBoard", return_value=board_context),
+        ):
+            exit_code = main(["board-brightness"])
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(stdout.getvalue().strip(), "brightness: 75%")
 
     def test_piece_open_command_is_removed(self) -> None:
         parser = build_parser()

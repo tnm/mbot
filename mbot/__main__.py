@@ -14,10 +14,10 @@ from .live import (
     stop_player_process,
 )
 from .midi import (
+    MidiTrackSummary,
     build_light_score,
     build_light_score_for_tracks,
     choose_track,
-    format_track_summary,
     load_midi,
     resolve_program_number,
     rewrite_midi_programs,
@@ -37,11 +37,13 @@ def build_parser() -> argparse.ArgumentParser:
         ),
         epilog=(
             "common commands:\n"
-            "  mbot board-brightness 10 --port /dev/cu.usbserial-0001\n"
-            "  mbot flash --port /dev/cu.usbserial-0001 flash\n"
-            "  mbot interactive --port /dev/cu.usbserial-0001\n"
+            "  mbot board-brightness 10\n"
+            "  mbot flash flash\n"
+            "  mbot interactive\n"
             "  mbot pieces\n"
-            "  mbot run cavalleria_rusticana --port /dev/cu.usbserial-0001"
+            "  mbot run cavalleria_rusticana\n"
+            "\n"
+            "use --port /path/to/device if your board is not on the default serial device."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -78,6 +80,18 @@ def build_parser() -> argparse.ArgumentParser:
     interactive_parser = subparsers.add_parser(
         "interactive",
         help="Open a small interactive menu for playback and board controls",
+        description=(
+            "Open a small interactive menu for playback and board controls.\n\n"
+            "Menu commands:\n"
+            "  play        choose and start a bundled piece\n"
+            "  replay      restart the last selected piece\n"
+            "  stop        stop playback and send OFF to the board\n"
+            "  brightness  set brightness to 0-100\n"
+            "  status      show board reply and playback status\n"
+            "  pieces      list bundled pieces\n"
+            "  quit        exit the menu"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     interactive_parser.add_argument("--port", default="/dev/cu.usbserial-0001")
 
@@ -139,15 +153,13 @@ def build_parser() -> argparse.ArgumentParser:
 def _print_tracks(midi_path: str) -> int:
     midi_data = load_midi(midi_path)
     print(f"{Path(midi_path).name} | ticks/quarter={midi_data.ticks_per_quarter}")
-    for summary in midi_data.track_summaries:
-        print(format_track_summary(summary))
+    for line in _format_track_summary_rows(midi_data.track_summaries):
+        print(line)
     return 0
 
 
 def _format_selected_tracks(selected_tracks: tuple) -> str:
-    if len(selected_tracks) == 1:
-        return format_track_summary(selected_tracks[0])
-    return "\n".join(format_track_summary(track) for track in selected_tracks)
+    return "\n".join(_format_track_summary_rows(selected_tracks))
 
 
 def _load_light_score(midi_path: str, track_indexes: tuple[int, ...] | None):
@@ -228,6 +240,60 @@ def _format_piece_listing_rows() -> list[str]:
             f"{title:<{title_width}}  "
             f"{tracks:<{tracks_width}}  "
             f"{midi_display}"
+        )
+    return lines
+
+
+def _format_track_summary_rows(summaries: tuple[MidiTrackSummary, ...]) -> list[str]:
+    rows: list[tuple[str, str, str, str, str, str]] = []
+    for summary in summaries:
+        pitch_range = "-"
+        if summary.min_pitch is not None and summary.max_pitch is not None:
+            pitch_range = f"{summary.min_pitch}-{summary.max_pitch}"
+
+        rows.append(
+            (
+                str(summary.index),
+                summary.name or f"track_{summary.index}",
+                str(summary.note_count),
+                ", ".join(str(channel) for channel in summary.channels) or "-",
+                ", ".join(summary.program_names) or "-",
+                pitch_range,
+            )
+        )
+
+    index_width = max(len("id"), max(len(row[0]) for row in rows))
+    name_width = max(len("name"), max(len(row[1]) for row in rows))
+    notes_width = max(len("notes"), max(len(row[2]) for row in rows))
+    channels_width = max(len("channels"), max(len(row[3]) for row in rows))
+    programs_width = max(len("programs"), max(len(row[4]) for row in rows))
+    pitch_width = max(len("pitch"), max(len(row[5]) for row in rows))
+
+    header = (
+        f"{'id':>{index_width}}  "
+        f"{'name':<{name_width}}  "
+        f"{'notes':>{notes_width}}  "
+        f"{'channels':<{channels_width}}  "
+        f"{'programs':<{programs_width}}  "
+        f"{'pitch':<{pitch_width}}"
+    )
+    separator = (
+        f"{'-' * index_width}  "
+        f"{'-' * name_width}  "
+        f"{'-' * notes_width}  "
+        f"{'-' * channels_width}  "
+        f"{'-' * programs_width}  "
+        f"{'-' * pitch_width}"
+    )
+    lines = [header, separator]
+    for index, name, notes, channels, programs, pitch in rows:
+        lines.append(
+            f"{index:>{index_width}}  "
+            f"{name:<{name_width}}  "
+            f"{notes:>{notes_width}}  "
+            f"{channels:<{channels_width}}  "
+            f"{programs:<{programs_width}}  "
+            f"{pitch:<{pitch_width}}"
         )
     return lines
 
@@ -375,11 +441,8 @@ def _play_midi(
 
     selected_tracks, light_score = _load_light_score(midi_path, track_indexes)
 
-    if len(selected_tracks) == 1:
-        print(f"selected track: {format_track_summary(selected_tracks[0])}")
-    else:
-        print("selected tracks:")
-        print(_format_selected_tracks(selected_tracks))
+    print("selected tracks:")
+    print(_format_selected_tracks(selected_tracks))
     print(f"pitch bands: {format_pitch_bands(light_score)}")
     print(f"duration: {light_score.total_ms} ms")
 
@@ -440,11 +503,8 @@ def _run_piece(
     print(f"piece: {piece.title}")
     print(f"note: {piece.note}")
     print(f"player: {resolved_player}")
-    if len(selected_tracks) == 1:
-        print(f"selected track: {format_track_summary(selected_tracks[0])}")
-    else:
-        print("selected tracks:")
-        print(_format_selected_tracks(selected_tracks))
+    print("selected tracks:")
+    print(_format_selected_tracks(selected_tracks))
     print(f"pitch bands: {format_pitch_bands(light_score)}")
     print(f"duration: {light_score.total_ms} ms")
     print(
@@ -522,15 +582,17 @@ def main(argv: list[str] | None = None) -> int:
                 time.sleep(0.05)
 
             info_reply = board.query_info().raw_reply
-            info = info_reply.strip()
-            if info:
-                print(f"board: {info}")
-
             brightness = board.query_brightness(info_reply)
             if brightness is None:
+                info = info_reply.strip()
+                if info:
+                    print(f"board: {info}")
                 print("brightness: unavailable")
             else:
-                print(f"brightness: {brightness}%")
+                if args.percent is None:
+                    print(f"brightness: {brightness}%")
+                else:
+                    print(f"set brightness: {brightness}%")
         return 0
 
     if args.command == "interactive":
