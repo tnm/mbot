@@ -86,6 +86,15 @@ mbot interactive
 | `how_deep_is_your_love.mid` | How Deep Is Your Love | Barry Gibb, Robin Gibb, Maurice Gibb |
 | `year_of_the_cat.mid` | Year of the Cat | Al Stewart, Peter Wood |
 
+### Soul / Standards
+
+| Filename | Name | Composer |
+| --- | --- | --- |
+| `aint_no_mountain_high_enough.mid` | Ain't No Mountain High Enough | Nickolas Ashford, Valerie Simpson |
+| `stand_by_me.mid` | Stand By Me | Ben E. King, Jerry Leiber, Mike Stoller |
+| `dock_of_the_bay.mid` | (Sittin' On) The Dock of the Bay | Otis Redding, Steve Cropper |
+| `what_a_difference_a_day_makes.mid` | What a Difference a Day Makes | Maria Grever, Stanley Adams |
+
 Use:
 
 ```bash
