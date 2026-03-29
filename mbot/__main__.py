@@ -284,7 +284,8 @@ def _interactive_loop(port: str) -> int:
             with SerialLightBoard(port) as board:
                 board.send_brightness(int(value))
                 time.sleep(0.05)
-                brightness = board.query_brightness()
+                info_reply = board.query_info().raw_reply
+                brightness = board.query_brightness(info_reply)
             if brightness is None:
                 print("brightness: unavailable")
             else:
@@ -483,11 +484,12 @@ def main(argv: list[str] | None = None) -> int:
                 board.send_brightness(args.percent)
                 time.sleep(0.05)
 
-            info = board.query_info().raw_reply.strip()
+            info_reply = board.query_info().raw_reply
+            info = info_reply.strip()
             if info:
                 print(f"board: {info}")
 
-            brightness = board.query_brightness()
+            brightness = board.query_brightness(info_reply)
             if brightness is None:
                 print("brightness: unavailable")
             else:

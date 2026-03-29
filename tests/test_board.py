@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import pty
 import termios
+import threading
 import unittest
 
 from mbot.board import SerialLightBoard
@@ -66,8 +67,43 @@ class SerialBoardTests(unittest.TestCase):
             path = os.ttyname(slave_fd)
             board = SerialLightBoard(path)
             board.open()
+            result: dict[str, int | None] = {}
+
+            def run_query() -> None:
+                result["brightness"] = board.query_brightness()
+
+            query_thread = threading.Thread(target=run_query)
+            query_thread.start()
+            self.assertEqual(os.read(master_fd, 16), b"PING\n")
             os.write(master_fd, b"OK PINS 26 25 33 32 BRIGHTNESS 75\n")
-            self.assertEqual(board.query_brightness(), 75)
+            query_thread.join(timeout=1.0)
+
+            self.assertEqual(result["brightness"], 75)
+            board.close()
+        finally:
+            os.close(master_fd)
+            os.close(slave_fd)
+
+    def test_query_info_flushes_stale_bytes_and_reads_single_reply_line(self) -> None:
+        master_fd, slave_fd = pty.openpty()
+        try:
+            path = os.ttyname(slave_fd)
+            board = SerialLightBoard(path)
+            board.open()
+            os.write(master_fd, b"stale\n")
+
+            result: dict[str, str] = {}
+
+            def run_query() -> None:
+                result["reply"] = board.query_info().raw_reply
+
+            query_thread = threading.Thread(target=run_query)
+            query_thread.start()
+            self.assertEqual(os.read(master_fd, 16), b"PING\n")
+            os.write(master_fd, b"OK PINS 26 25 33 32 BRIGHTNESS 75\nextra")
+            query_thread.join(timeout=1.0)
+
+            self.assertEqual(result["reply"], "OK PINS 26 25 33 32 BRIGHTNESS 75\n")
             board.close()
         finally:
             os.close(master_fd)

@@ -210,7 +210,9 @@ def choose_track(data: MidiData, track_index: int | None = None) -> MidiTrackSum
     if not note_tracks:
         raise ValueError("MIDI file does not contain any note events")
 
-    return max(note_tracks, key=lambda summary: summary.note_count)
+    melodic_tracks = [summary for summary in note_tracks if not _is_percussion_only(summary)]
+    candidate_tracks = melodic_tracks or note_tracks
+    return max(candidate_tracks, key=lambda summary: summary.note_count)
 
 
 def build_light_score(
@@ -314,6 +316,10 @@ def format_track_summary(summary: MidiTrackSummary) -> str:
         f"{summary.index:>2}  {name:<24} notes={summary.note_count:<4} "
         f"channels={channels:<8} programs={programs:<24} pitch={pitch_range}"
     )
+
+
+def _is_percussion_only(summary: MidiTrackSummary) -> bool:
+    return bool(summary.channels) and all(channel == 10 for channel in summary.channels)
 
 
 def resolve_program_number(program: str) -> int:

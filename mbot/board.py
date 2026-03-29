@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import os
+import re
 import select
 import termios
 import time
 from dataclasses import dataclass
-import re
 
 
 DEFAULT_BAUD_RATE = 115200
@@ -69,12 +69,14 @@ class SerialLightBoard:
         self.write_line(f"BRIGHTNESS {percent}")
 
     def query_info(self) -> BoardInfo:
+        if self.fd is None:
+            raise RuntimeError("serial board is not open")
+        termios.tcflush(self.fd, termios.TCIFLUSH)
         self.write_line("PING")
-        time.sleep(0.05)
-        return BoardInfo(raw_reply=self.read_available(timeout=0.25))
+        return BoardInfo(raw_reply=self.read_line(timeout=0.5))
 
-    def query_brightness(self) -> int | None:
-        info = self.query_info().raw_reply
+    def query_brightness(self, raw_reply: str | None = None) -> int | None:
+        info = raw_reply if raw_reply is not None else self.query_info().raw_reply
         match = re.search(r"\bBRIGHTNESS\s+(\d+)\b", info)
         if match is None:
             return None
@@ -98,6 +100,28 @@ class SerialLightBoard:
             chunks.append(chunk)
             ready, _, _ = select.select([self.fd], [], [], 0)
         return b"".join(chunks).decode("utf-8", errors="replace")
+
+    def read_line(self, timeout: float = 0.0) -> str:
+        if self.fd is None:
+            raise RuntimeError("serial board is not open")
+
+        deadline = time.monotonic() + timeout
+        chunks = bytearray()
+        while True:
+            remaining = max(0.0, deadline - time.monotonic())
+            ready, _, _ = select.select([self.fd], [], [], remaining)
+            if not ready:
+                break
+
+            chunk = os.read(self.fd, 1)
+            if not chunk:
+                break
+
+            chunks.extend(chunk)
+            if chunk == b"\n":
+                break
+
+        return bytes(chunks).decode("utf-8", errors="replace")
 
     @staticmethod
     def _configure_tty(fd: int, baud_rate: int) -> None:

@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mbot.midi import build_light_score_for_tracks, load_midi, rewrite_midi_programs
+from mbot.midi import build_light_score_for_tracks, choose_track, load_midi, rewrite_midi_programs
 
 try:
     from tests.test_support import make_midi_file
@@ -80,3 +80,29 @@ class MidiPipelineTests(unittest.TestCase):
             self.assertIn("Pad", score.track_name)
             self.assertIn("Lead", score.track_name)
             self.assertTrue(any(frame.mask != 0 for frame in score.frames))
+
+    def test_choose_track_prefers_melodic_track_over_busier_drum_track(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            source = Path(tempdir) / "drums_vs_melody.mid"
+            make_midi_file(
+                source,
+                tracks=[
+                    [
+                        (0, bytes([0x99, 36, 100])),
+                        (24, bytes([0x89, 36, 0])),
+                        (0, bytes([0x99, 38, 100])),
+                        (24, bytes([0x89, 38, 0])),
+                        (0, bytes([0x99, 42, 100])),
+                        (24, bytes([0x89, 42, 0])),
+                    ],
+                    [
+                        (0, bytes([0x90, 60, 100])),
+                        (96, bytes([0x80, 60, 0])),
+                    ],
+                ],
+            )
+
+            midi_data = load_midi(source)
+            selected = choose_track(midi_data)
+
+            self.assertEqual(selected.index, 1)
