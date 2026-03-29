@@ -84,24 +84,17 @@ mbot interactive
 
 These bundled presets are available today:
 
-- `cavalleria_rusticana`
-  Cavalleria rusticana (Intermezzo)
-- `chopin_prelude_e_minor`
-  Chopin Prelude in E minor
-- `clair_de_lune`
-  Clair de lune
-- `e_lucevan_le_stelle`
-  E lucevan le stelle
-- `gymnopedie_no_1`
-  Gymnopedie No. 1
-- `nessun_dorma`
-  Nessun dorma
-- `o_mio_babbino_caro`
-  O mio babbino caro
-- `pavane_pour_une_infante_defunte`
-  Pavane pour une infante defunte
-- `vissi_darte`
-  Vissi d'arte
+| Filename | Name | Composer |
+| --- | --- | --- |
+| `cavalleria_rusticana_intermezzo.mid` | Cavalleria rusticana (Intermezzo) | Pietro Mascagni |
+| `chopin_prelude_op28_no4_e_minor.mid` | Chopin Prelude in E minor | Frederic Chopin |
+| `clair_de_lune.mid` | Clair de lune | Claude Debussy |
+| `e_lucevan_le_stelle.mid` | E lucevan le stelle | Giacomo Puccini |
+| `gymnopedie_no_1.mid` | Gymnopedie No. 1 | Erik Satie |
+| `nessun_dorma.mid` | Nessun dorma | Giacomo Puccini |
+| `o_mio_babbino_caro_violin.mid` | O mio babbino caro | Giacomo Puccini |
+| `pavane_pour_une_infante_defunte.mid` | Pavane pour une infante defunte | Maurice Ravel |
+| `vissi_darte.mid` | Vissi d'arte | Giacomo Puccini |
 
 Use:
 
