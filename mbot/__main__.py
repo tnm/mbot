@@ -192,6 +192,46 @@ def _print_piece_choices() -> None:
         print(f" {index:>2}. {piece.slug:<30} {piece.title}")
 
 
+def _format_piece_listing_rows() -> list[str]:
+    rows: list[tuple[str, str, str, str]] = []
+    for piece in PIECES.values():
+        midi_display = str(piece.midi_path.relative_to(REPO_ROOT))
+        rows.append(
+            (
+                piece.slug,
+                piece.title,
+                ",".join(str(track) for track in piece.preferred_tracks),
+                midi_display,
+            )
+        )
+
+    slug_width = max(len("slug"), max(len(row[0]) for row in rows))
+    title_width = max(len("title"), max(len(row[1]) for row in rows))
+    tracks_width = max(len("tracks"), max(len(row[2]) for row in rows))
+
+    header = (
+        f"{'slug':<{slug_width}}  "
+        f"{'title':<{title_width}}  "
+        f"{'tracks':<{tracks_width}}  "
+        "midi"
+    )
+    separator = (
+        f"{'-' * slug_width}  "
+        f"{'-' * title_width}  "
+        f"{'-' * tracks_width}  "
+        "----"
+    )
+    lines = [header, separator]
+    for slug, title, tracks, midi_display in rows:
+        lines.append(
+            f"{slug:<{slug_width}}  "
+            f"{title:<{title_width}}  "
+            f"{tracks:<{tracks_width}}  "
+            f"{midi_display}"
+        )
+    return lines
+
+
 def _resolve_piece_choice(choice: str) -> str | None:
     stripped = choice.strip()
     if not stripped:
@@ -468,11 +508,8 @@ def main(argv: list[str] | None = None) -> int:
         return _print_tracks(str(output_path))
 
     if args.command == "pieces":
-        for piece in PIECES.values():
-            print(
-                f"{piece.slug:<20} title={piece.title}  "
-                f"tracks={','.join(str(track) for track in piece.preferred_tracks)}  midi={piece.midi_path}"
-            )
+        for line in _format_piece_listing_rows():
+            print(line)
         return 0
 
     if args.command == "board-brightness":

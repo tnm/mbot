@@ -5,7 +5,13 @@ import io
 import unittest
 from unittest import mock
 
-from mbot.__main__ import _interactive_loop, build_parser, _resolve_piece_choice, main
+from mbot.__main__ import (
+    _format_piece_listing_rows,
+    _interactive_loop,
+    _resolve_piece_choice,
+    build_parser,
+    main,
+)
 
 
 class CliContractTests(unittest.TestCase):
@@ -76,6 +82,13 @@ class CliContractTests(unittest.TestCase):
 
     def test_resolve_piece_choice_accepts_number(self) -> None:
         self.assertEqual(_resolve_piece_choice("1"), "cavalleria_rusticana")
+
+    def test_piece_listing_is_rendered_as_a_table_with_relative_paths(self) -> None:
+        lines = _format_piece_listing_rows()
+        self.assertGreaterEqual(len(lines), 3)
+        self.assertEqual(lines[0].split(), ["slug", "title", "tracks", "midi"])
+        self.assertIn("midi/", lines[2])
+        self.assertNotIn("/Users/", lines[2])
 
     def test_piece_open_command_is_removed(self) -> None:
         parser = build_parser()
