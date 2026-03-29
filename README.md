@@ -90,12 +90,18 @@ These bundled presets are available today:
   Chopin Prelude in E minor
 - `clair_de_lune`
   Clair de lune
+- `e_lucevan_le_stelle`
+  E lucevan le stelle
 - `gymnopedie_no_1`
   Gymnopedie No. 1
+- `nessun_dorma`
+  Nessun dorma
 - `o_mio_babbino_caro`
   O mio babbino caro
 - `pavane_pour_une_infante_defunte`
   Pavane pour une infante defunte
+- `vissi_darte`
+  Vissi d'arte
 
 Use:
 
