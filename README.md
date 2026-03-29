@@ -59,7 +59,7 @@ mbot interactive
 
 ## Included Pieces
 
-These bundled presets are available today:
+### Classical / Opera
 
 | Filename | Name | Composer |
 | --- | --- | --- |
@@ -72,6 +72,19 @@ These bundled presets are available today:
 | `o_mio_babbino_caro_violin.mid` | O mio babbino caro | Giacomo Puccini |
 | `pavane_pour_une_infante_defunte.mid` | Pavane pour une infante defunte | Maurice Ravel |
 | `vissi_darte.mid` | Vissi d'arte | Giacomo Puccini |
+
+### Yacht / 70s
+
+| Filename | Name | Composer |
+| --- | --- | --- |
+| `dirty_work.mid` | Dirty Work | Walter Becker, Donald Fagen |
+| `ventura_highway.mid` | Ventura Highway | Dewey Bunnell |
+| `sailing.mid` | Sailing | Christopher Cross |
+| `brandy_youre_a_fine_girl.mid` | Brandy (You're a Fine Girl) | Elliot Lurie |
+| `escape_the_pina_colada_song.mid` | Escape (The Pina Colada Song) | Rupert Holmes |
+| `summer_breeze.mid` | Summer Breeze | Jim Seals, Dash Crofts |
+| `how_deep_is_your_love.mid` | How Deep Is Your Love | Barry Gibb, Robin Gibb, Maurice Gibb |
+| `year_of_the_cat.mid` | Year of the Cat | Al Stewart, Peter Wood |
 
 Use:
 
