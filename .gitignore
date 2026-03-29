@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+*.pyc
+*.pyo
+*.wav
+*.ogg
+.venv/
+.swift-cache/
+firmware/esp32/light_renderer/build/
+firmware/esp32/light_renderer/build-*/
